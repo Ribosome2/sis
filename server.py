@@ -1,3 +1,5 @@
+import json
+
 import numpy as np
 from PIL import Image
 from feature_extractor import FeatureExtractor
@@ -7,13 +9,23 @@ from pathlib import Path
 
 app = Flask(__name__)
 
+
+def loadNpyToFilePath():
+    with open('static/npyToFilePath.json', 'r') as f:
+        dataMap = json.load(f)
+    return dataMap
+
+npyFileMap = loadNpyToFilePath()
+
 # Read image features
 fe = FeatureExtractor()
 features = []
 img_paths = []
 for feature_path in Path("./static/feature").glob("*.npy"):
-    features.append(np.load(feature_path))
-    img_paths.append(Path("./static/img") / (feature_path.stem + ".png"))
+    if str(feature_path) in npyFileMap:
+        features.append(np.load(feature_path))
+        print("feature_path : ", feature_path, "  img_path : ", npyFileMap[str(feature_path)])
+        img_paths.append(npyFileMap[str(feature_path)])
 
 print("features: ", len(features))
 features = np.array(features)
