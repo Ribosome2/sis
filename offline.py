@@ -23,11 +23,11 @@ if __name__ == '__main__':
     index = 0
     for img_path in paths:
         index += 1
-        if(index==10):
-            break
+        # if(index==10):
+        #     break
         if index % 100 == 0:
             print("scan progress {0}/{1} ".format(index,all_count))
-        print(img_path)  # e.g., ./static/img/xxx.jpg
+        # print(img_path)  # e.g., ./static/img/xxx.jpg
 
         feature = fe.extract(img=Image.open(img_path))
         feature_path = Path("./static/feature") / (img_path.stem + ".npy")  # e.g., ./static/feature/xxx.npy

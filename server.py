@@ -24,7 +24,7 @@ img_paths = []
 for feature_path in Path("./static/feature").glob("*.npy"):
     if str(feature_path) in npyFileMap:
         features.append(np.load(feature_path))
-        print("feature_path : ", feature_path, "  img_path : ", npyFileMap[str(feature_path)])
+        # print("feature_path : ", feature_path, "  img_path : ", npyFileMap[str(feature_path)])
         img_paths.append(npyFileMap[str(feature_path)])
 
 print("features: ", len(features))
