@@ -13,7 +13,9 @@ features = []
 img_paths = []
 for feature_path in Path("./static/feature").glob("*.npy"):
     features.append(np.load(feature_path))
-    img_paths.append(Path("./static/img") / (feature_path.stem + ".jpg"))
+    img_paths.append(Path("./static/img") / (feature_path.stem + ".png"))
+
+print("features: ", len(features))
 features = np.array(features)
 
 
