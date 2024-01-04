@@ -16,7 +16,7 @@
             {% for score in scores %}
             <figure style="float: left; margin-right: 20px; margin-bottom: 20px;">
                 <img src="{{ score[1] }}" height="200px">
-                <figcaption>{{ score[0] }}</figcaption>
+                <figcaption>{{ score[1] + "---" + score[0] }}</figcaption>
             </figure>
             {% endfor %}
         </div>
