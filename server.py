@@ -19,21 +19,30 @@ npyFileMap = loadNpyDataMap()
 
 # Read image features
 fe = FeatureExtractor()
-features = []
+svn_files_features = []
+unity_files_features = []
 img_paths = []
 for feature_path in Path("./static/feature").glob("*.npy"):
-    if str(feature_path) in npyFileMap:
-        features.append(np.load(feature_path))
+    feature_path_str = str(feature_path)
+    if feature_path_str in npyFileMap:
+        # print("feature_path_str : ", feature_path_str)
+        if feature_path_str.startswith("static\\feature\\static_img_svn"):
+            svn_files_features.append(np.load(feature_path))
+        else:
+            unity_files_features.append(np.load(feature_path))
         # print("feature_path : ", feature_path, "  img_path : ", npyFileMap[str(feature_path)])
-        img_paths.append(npyFileMap[str(feature_path)]["img_path"])
+        img_paths.append(npyFileMap[feature_path_str]["img_path"])
 
-print("features: ", len(features))
-features = np.array(features)
+print("svn features: ", len(svn_files_features))
+print("unity_files_features : ", len(unity_files_features))
+svn_files_features = np.array(svn_files_features)
+unity_files_features = np.array(unity_files_features)
 
 def response_result_as_text(scores):
     result = ""
     for score in scores:
         cleanPath = score[1].replace("static\img\svn\\", "")
+        cleanPath = cleanPath.replace("static\img\\UnityProject\\", "")
         result += cleanPath + "\n"
     return result
 
@@ -48,11 +57,21 @@ def index():
         uploaded_img_path = "static/uploaded/" + datetime.now().isoformat().replace(":", ".") + "_" + file.filename
         img.save(uploaded_img_path)
 
+        is_search_svn = False
+        if 'isSVN' in request.form and request.form['isSVN']:
+            is_search_svn = True
+
+
         # Run search
         query = fe.extract(img)
-        dists = np.linalg.norm(features-query, axis=1)  # L2 distances to features
+        # python的三目运算
+
+        feature_pool = svn_files_features if is_search_svn  else unity_files_features
+        dists = np.linalg.norm(feature_pool - query, axis=1)
         ids = np.argsort(dists)[:30]  # Top 30 results
         scores = [(str(dists[id]), img_paths[id]) for id in ids]
+
+
 
          # Check if resultAsText field is set
         if 'resultAsText' in request.form and request.form['resultAsText']:
