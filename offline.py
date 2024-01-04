@@ -56,8 +56,8 @@ def extract_feature(img_path):
         if abs(info['mtime'] - os.path.getmtime(img_path)) < 1.0:  # 使用容差值比较时间戳
             # print("load feature from file : ", feature_path)
             return False
-        else:
-            print("time diff : ", info['mtime'] - os.path.getmtime(img_path),path_str)
+        # else:
+            # print("time diff : ", info['mtime'] - os.path.getmtime(img_path),path_str)
             # return np.load(feature_path)
     feature = fe.extract(img=Image.open(img_path))
     save_feature(feature_path, feature, img_path)
