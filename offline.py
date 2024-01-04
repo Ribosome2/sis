@@ -10,7 +10,10 @@ import os
 
 
 def loadNpyDataMap():
-    with open('static/npyToFilePath.json', 'r') as f:
+    filepath = Path("./static/npyToFilePath.json")
+    if not filepath.exists():
+        return {}
+    with open(filepath, 'r') as f:
         dataMap = json.load(f)
     return dataMap
 
@@ -44,8 +47,9 @@ def save_feature(feature_path, feature, img_path):
 
 # 在提取特征的时候，先检查文件的修改时间是否发生了改变
 def extract_feature(img_path):
-    # todo：不同路径图片有重名的时候用 img_path.stem 会有问题
-    feature_path = Path("./static/feature") / (img_path.stem + ".npy")
+    # 使用文件的全路径来生成特征文件的名称，并将路径中的`/`和`\`字符替换为`_`
+    feature_filename = str(img_path).replace('/', '_').replace('\\', '_') + ".npy"
+    feature_path = Path("./static/feature") /feature_filename
     path_str = str(feature_path)
     if path_str in dataMap:
         info = dataMap[path_str]
