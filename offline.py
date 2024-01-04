@@ -18,16 +18,6 @@ def loadNpyDataMap():
     return dataMap
 
 
-def get_file_md5(file_path):
-    with open(file_path, 'rb') as f:
-        md5 = hashlib.md5()
-        while True:
-            data = f.read(8192)
-            if not data:
-                break
-            md5.update(data)
-        return md5.hexdigest()
-
 
 def save_dataMap(dataMap):
     # datamap to json and save to file
@@ -64,14 +54,10 @@ def extract_feature(img_path):
     # print("extract feature from img : ", img_path)
     return True
 
-
-if __name__ == '__main__':
-    fe = FeatureExtractor()
-    dataMap = loadNpyDataMap()
-    paths = sorted(Path("./static/img/svn").rglob("*.png"))
+def scanRootDir(rootDir):
+    paths = sorted(Path(rootDir).rglob("*.png"))
     all_count = len(paths)
-    print("all paths : ", len(paths))
-    start_time = datetime.now()
+    print(rootDir,"all paths : ", len(paths))
     updateNpyCount = 0
     index = 0
     for img_path in paths:
@@ -83,7 +69,16 @@ if __name__ == '__main__':
         # print(img_path)  # e.g., ./static/img/xxx.jpg
         if extract_feature(img_path):
             updateNpyCount += 1
+    print(rootDir ,"update npy count : ", updateNpyCount)
+
+
+if __name__ == '__main__':
+    start_time = datetime.now()
+    fe = FeatureExtractor()
+    dataMap = loadNpyDataMap()
+    scanRootDir("./static/img/svn")
+    scanRootDir("./static/img/UnityProject/Assets")
+
     save_dataMap(dataMap)
     end_time = datetime.now()
-    print("update npy count : ", updateNpyCount)
     print("cost time : ", end_time - start_time)

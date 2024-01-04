@@ -30,6 +30,13 @@ for feature_path in Path("./static/feature").glob("*.npy"):
 print("features: ", len(features))
 features = np.array(features)
 
+def response_result_as_text(scores):
+    result = ""
+    for score in scores:
+        cleanPath = score[1].replace("static\img\svn\\", "")
+        result += cleanPath + "\n"
+    return result
+
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
@@ -46,6 +53,10 @@ def index():
         dists = np.linalg.norm(features-query, axis=1)  # L2 distances to features
         ids = np.argsort(dists)[:30]  # Top 30 results
         scores = [(str(dists[id]), img_paths[id]) for id in ids]
+
+         # Check if resultAsText field is set
+        if 'resultAsText' in request.form and request.form['resultAsText']:
+            return response_result_as_text(scores)
 
         return render_template('index.html',
                                query_path=uploaded_img_path,
