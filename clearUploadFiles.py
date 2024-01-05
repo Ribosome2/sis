@@ -18,16 +18,7 @@ def delete_file_if_exists(filepath):
     else:
         print(f"File {filepath} does not exist.")
 
-# prompt user to confirm yes or no before deleting
-def confirm_delete(prompt):
-    while True:
-        answer = input(prompt)
-        if answer == 'y':
-            delete_files_with_suffix('./static/feature', '.npy')
-            delete_file_if_exists('static/npyToFilePath.json')
-        elif answer == 'n':
-            return False
-        else:
-            print("Please enter y or n.")
+# 使用方法
+delete_files_with_suffix('./static/uploaded', '.png')
 
-confirm_delete("Are you sure you want to delete all scan cached files? (y/n) ")
+delete_file_if_exists('static/npyToFilePath.json')
