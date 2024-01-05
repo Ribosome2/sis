@@ -21,17 +21,20 @@ npyFileMap = loadNpyDataMap()
 fe = FeatureExtractor()
 svn_files_features = []
 unity_files_features = []
-img_paths = []
+img_paths_svn = []
+img_paths_unity = []
 for feature_path in Path("./static/feature").glob("*.npy"):
     feature_path_str = str(feature_path)
     if feature_path_str in npyFileMap:
         # print("feature_path_str : ", feature_path_str)
-        if feature_path_str.startswith("static\\feature\\static_img_svn"):
-            svn_files_features.append(np.load(feature_path))
-        else:
+        if "static_img_UnityProject" in feature_path_str :
             unity_files_features.append(np.load(feature_path))
+            img_paths_unity.append(npyFileMap[feature_path_str]["img_path"])
+        else:
+            svn_files_features.append(np.load(feature_path))
+            img_paths_svn.append(npyFileMap[feature_path_str]["img_path"])
         # print("feature_path : ", feature_path, "  img_path : ", npyFileMap[str(feature_path)])
-        img_paths.append(npyFileMap[feature_path_str]["img_path"])
+
 
 print("svn features: ", len(svn_files_features))
 print("unity_files_features : ", len(unity_files_features))
@@ -47,10 +50,20 @@ def response_result_as_text(scores):
     return result
 
 
+def find_by_feature(feature_pool, query,img_paths):
+    dists = np.linalg.norm(feature_pool - query, axis=1)
+    ids = np.argsort(dists)[:15]  # Top 15 results
+    scores = [(str(dists[id]), img_paths[id]) for id in ids]
+    return scores
+
 @app.route('/', methods=['GET', 'POST'])
 def index():
     if request.method == 'POST':
         file = request.files['query_img']
+        # check file is empty
+        if not file:
+            return "No file uploaded"
+
 
         # Save query image
         img = Image.open(file.stream)  # PIL image
@@ -61,16 +74,17 @@ def index():
         if 'isSVN' in request.form and request.form['isSVN']:
             is_search_svn = True
 
+        print("is_search_svn : ", is_search_svn)
+
 
         # Run search
         query = fe.extract(img)
         # python的三目运算
-
-        feature_pool = svn_files_features if is_search_svn  else unity_files_features
-        dists = np.linalg.norm(feature_pool - query, axis=1)
-        ids = np.argsort(dists)[:30]  # Top 30 results
-        scores = [(str(dists[id]), img_paths[id]) for id in ids]
-
+        scores = []
+        if(is_search_svn):
+            scores = find_by_feature(svn_files_features, query,img_paths_svn)
+        else:
+            scores = find_by_feature(unity_files_features, query,img_paths_unity)
 
 
          # Check if resultAsText field is set

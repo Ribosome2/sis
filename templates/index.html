@@ -6,7 +6,8 @@
             <h1>Kyle Image Search </h1>
             <form method="POST" enctype="multipart/form-data">
                 <input type="file" name="query_img"><br>
-                <input type="submit">
+                <input type="submit" name="isSVN" value="Search SVN">
+                <input type="submit" name="submit_svn_false" value="Search UnityProject">
             </form>
             <h2>查找目标:</h2>
             {% if query_path %}
