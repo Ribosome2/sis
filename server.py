@@ -1,4 +1,5 @@
 import json
+import os
 
 import numpy as np
 from PIL import Image
@@ -67,14 +68,19 @@ def index():
 
         # Save query image
         img = Image.open(file.stream)  # PIL image
-        uploaded_img_path = "static/uploaded/" + datetime.now().isoformat().replace(":", ".") + "_" + file.filename
+        time_str = datetime.now().isoformat().replace(":", ".")
+        date_time_folder =time_str[:10]  # 2020-12-12 prefix as folderName
+        target_folder = "static/uploaded/" + date_time_folder
+        # create dir if not exist
+        if not os.path.exists(target_folder):
+            os.makedirs(target_folder)
+        file_name = time_str + "_" + file.filename
+        uploaded_img_path = target_folder+ "/"+ file_name
         img.save(uploaded_img_path)
 
         is_search_svn = False
         if 'isSVN' in request.form and request.form['isSVN']:
             is_search_svn = True
-
-        print("is_search_svn : ", is_search_svn)
 
 
         # Run search

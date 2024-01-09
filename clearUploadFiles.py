@@ -1,6 +1,7 @@
 import os
 import glob
 
+
 def delete_files_with_suffix(directory, suffix):
     # 使用 glob 模块找到所有具有特定后缀的文件
     files = glob.glob(directory + '/**/*' + suffix, recursive=True)
@@ -11,6 +12,7 @@ def delete_files_with_suffix(directory, suffix):
         except OSError as e:
             print(f"Error: {file} : {e.strerror}")
 
+
 def delete_file_if_exists(filepath):
     if os.path.isfile(filepath):
         os.remove(filepath)
@@ -18,7 +20,6 @@ def delete_file_if_exists(filepath):
     else:
         print(f"File {filepath} does not exist.")
 
+
 # 使用方法
 delete_files_with_suffix('./static/uploaded', '.png')
-
-delete_file_if_exists('static/npyToFilePath.json')
