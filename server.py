@@ -12,8 +12,16 @@ app = Flask(__name__)
 
 
 def loadNpyDataMap():
+    dataMap = {}
     with open('static/npyToFilePath.json', 'r') as f:
-        dataMap = json.load(f)
+        cacheMap = json.load(f)
+        for key in cacheMap:
+            cache_data = cacheMap[key]
+            if os.path.exists(cache_data["img_path"]):
+                dataMap[key] = cache_data
+            # else:
+            #     print("remove cache : ", cache_data["img_path"])
+
     return dataMap
 
 npyFileMap = loadNpyDataMap()
