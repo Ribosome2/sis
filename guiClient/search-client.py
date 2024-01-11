@@ -4,10 +4,25 @@ import os
 import wx
 import requests
 
+confi_file_path = "image_searcher.conf"
+
+
+def load_config():
+    if not os.path.exists(confi_file_path):
+        return ""
+    with open(confi_file_path, 'r') as f:
+        return f.read()
+
+
+def save_config(svn_root_dir):
+    with open(confi_file_path, 'w') as f:
+        f.write(svn_root_dir)
+
 
 class ImageUploader(wx.Frame):
     def __init__(self, parent, title):
         super(ImageUploader, self).__init__(parent, title=title, size=(600, 800))
+        self.svn_root_dir = load_config()
         self.preview_texture_size = 80
         panel = wx.Panel(self)
         self.panel = panel
@@ -58,7 +73,20 @@ class ImageUploader(wx.Frame):
         else:
             wx.MessageBox("Upload failed", "Error", wx.OK | wx.ICON_ERROR)
 
+    def check_svn_root_setup(self):
+        if self.svn_root_dir == "":
+            dlg = wx.DirDialog(self, "请选择SVN根目录(本地展示搜索图片结果用)", style=wx.DD_DEFAULT_STYLE)
+            if dlg.ShowModal() == wx.ID_OK:
+                self.svn_root_dir = dlg.GetPath()
+                save_config(self.svn_root_dir)
+            dlg.Destroy()
+            return True
+        else:
+            return False
+
     def on_search_clipboard(self, event):
+        if self.check_svn_root_setup():
+            return
         if wx.TheClipboard.Open():
             if wx.TheClipboard.IsSupported(wx.DataFormat(wx.DF_BITMAP)):
                 data = wx.BitmapDataObject()
@@ -77,7 +105,9 @@ class ImageUploader(wx.Frame):
             wx.MessageBox("剪切板打开失败", "Error", wx.OK | wx.ICON_ERROR)
 
     def on_upload(self, event):
-        with wx.FileDialog(self, "Select PNG file to upload", wildcard="PNG files (*.png)|*.png",
+        if self.check_svn_root_setup():
+            return
+        with wx.FileDialog(self, "选择要搜索的PNG图片", wildcard="PNG files (*.png)|*.png",
                            style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST) as fileDialog:
             if fileDialog.ShowModal() == wx.ID_CANCEL:
                 return
@@ -106,21 +136,11 @@ class ImageUploader(wx.Frame):
         for path in paths:
             if path == "":
                 continue
-            path = "../static/img/svn/" + path
+            path = self.svn_root_dir + "/" + path
             if path != "" and os.path.exists(path):
                 image = wx.Image(path, wx.BITMAP_TYPE_ANY)
                 if image.IsOk():
-                    size_desc = "大小:" + str(image.GetWidth()) + "X" + str(image.GetHeight())
-                    image = self.clamp_image_size(image, 300)
-                    bmp = wx.Bitmap(image)
-                    static_image = wx.StaticBitmap(self.scrolled_window, -1, bmp, (10, 10))
-                    item_sizer = wx.BoxSizer(wx.HORIZONTAL)
-                    vertical_sizer = wx.BoxSizer(wx.VERTICAL)
-                    item_sizer.Add(static_image, 0, wx.ALL | wx.LEFT, 5)
-                    item_sizer.Add(vertical_sizer, 0, wx.ALL | wx.LEFT, 5)
-                    vertical_sizer.Add(wx.StaticText(self.scrolled_window, label=path), 0, wx.ALL | wx.Right, 5)
-                    vertical_sizer.Add(wx.StaticText(self.scrolled_window, label=size_desc), 0, wx.ALL | wx.Right, 5)
-                    self.imageListSizer.Add(item_sizer, 0, wx.ALL | wx.LEFT, 5)  # 将图片添加到垂直布局管理器中
+                    self.add_single_image_result(image, path)
                 else:
                     print("Invalid image format or path:", path)
             else:
@@ -129,6 +149,27 @@ class ImageUploader(wx.Frame):
         self.scrolled_window.SetScrollRate(5, 5)  # Set the scrolling rate
         self.scrolled_window.SetVirtualSize((600, len(paths) * 100))
         self.scrolled_window.Scroll(0, 0)
+
+    def add_single_image_result(self, image, path):
+        size_desc = "大小:" + str(image.GetWidth()) + "X" + str(image.GetHeight())
+        image = self.clamp_image_size(image, 300)
+        bmp = wx.Bitmap(image)
+        static_image = wx.StaticBitmap(self.scrolled_window, -1, bmp, (10, 10))
+        item_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        vertical_sizer = wx.BoxSizer(wx.VERTICAL)
+        item_sizer.Add(static_image, 0, wx.ALL | wx.LEFT, 5)
+        item_sizer.Add(vertical_sizer, 0, wx.ALL | wx.LEFT, 5)
+        vertical_sizer.Add(wx.StaticText(self.scrolled_window, label=path), 0, wx.ALL | wx.Right, 5)
+        vertical_sizer.Add(wx.StaticText(self.scrolled_window, label=size_desc), 0, wx.ALL | wx.Right, 5)
+
+        open_file_button = wx.Button(self.scrolled_window, label='打开文件')
+        open_file_button.Bind(wx.EVT_BUTTON, lambda event: os.startfile(path))
+        vertical_sizer.Add(open_file_button, 0, wx.ALL | wx.RIGHT, 5)
+
+        open_folder_button = wx.Button(self.scrolled_window, label='打开文件夹')
+        open_folder_button.Bind(wx.EVT_BUTTON, lambda event: os.startfile(os.path.dirname(path)))
+        vertical_sizer.Add(open_folder_button, 0, wx.ALL | wx.RIGHT, 5)
+        self.imageListSizer.Add(item_sizer, 0, wx.ALL | wx.LEFT, 5)  # 将图片添加到垂直布局管理器中
 
 
 if __name__ == '__main__':

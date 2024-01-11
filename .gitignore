@@ -92,3 +92,4 @@ ENV/
 # Rope project settings
 .ropeproject
 guiClient/tempClipboardImage.png
+guiClient/image_searcher.conf
