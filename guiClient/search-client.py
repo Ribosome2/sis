@@ -6,7 +6,8 @@ import requests
 
 confi_file_path = "image_searcher.conf"
 
-
+import wx
+print(wx.__file__)
 def load_config():
     if not os.path.exists(confi_file_path):
         return ""
@@ -146,7 +147,7 @@ class ImageUploader(wx.Frame):
             else:
                 print("File not found at path:", path)
 
-        self.scrolled_window.SetScrollRate(5, 5)  # Set the scrolling rate
+        self.scrolled_window.SetScrollRate(15, 15)  # Set the scrolling rate
         self.scrolled_window.SetVirtualSize((600, len(paths) * 100))
         self.scrolled_window.Scroll(0, 0)
 

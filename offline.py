@@ -72,13 +72,33 @@ def scanRootDir(rootDir):
     print(rootDir ,"update npy count : ", updateNpyCount)
 
 
+
+def remove_not_exist_file_and_data():
+    not_exist_count = 0
+    keys_to_remove = {}
+    for k, v in dataMap.items():
+        if not os.path.exists(v['img_path']):
+            not_exist_count += 1
+            keys_to_remove[k]=v
+    all_count = len(dataMap)
+    if(all_count>1000 and not_exist_count>100):
+        for k, v in keys_to_remove.items():
+            if not os.path.exists(v['img_path']):
+                if os.path.exists(k):
+                    print("delete "+k)
+                    os.remove(k)
+                del dataMap[k]
+        print("remove not exist data count: ", not_exist_count)
+
+
+
 if __name__ == '__main__':
     start_time = datetime.now()
     fe = FeatureExtractor()
     dataMap = loadNpyDataMap()
     scanRootDir("./static/img/svn")
     scanRootDir("./static/img/UnityProject/Assets")
-
+    remove_not_exist_file_and_data()
     save_dataMap(dataMap)
     end_time = datetime.now()
     print("cost time : ", end_time - start_time)
