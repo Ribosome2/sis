@@ -19,7 +19,17 @@ def save_config(svn_root_dir):
     with open(confi_file_path, 'w') as f:
         f.write(svn_root_dir)
 
+class MyFileDropTarget(wx.FileDropTarget):
+    def __init__(self, window):
+        wx.FileDropTarget.__init__(self)
+        self.window = window
 
+    def OnDropFiles(self, x, y, filenames):
+        # self.window.AppendText("%d file(s) dropped at (%d,%d):\n" % (len(filenames), x, y))
+        for file in filenames:
+            self.window.search_by_file_path( file)
+            return True
+        return False
 class ImageUploader(wx.Frame):
     def __init__(self, parent, title):
         super(ImageUploader, self).__init__(parent, title=title, size=(600, 800))
@@ -29,7 +39,9 @@ class ImageUploader(wx.Frame):
         panel = wx.Panel(self)
         self.panel = panel
         vbox = wx.BoxSizer(wx.VERTICAL)
+        vbox.Add(wx.StaticText(panel, label="以图搜图结果说明：搜图服务器的缓存每天会更新，如果结果跟你本地对不上，可能有延迟\n可以用下面按钮搜剪切板的图片也可以直接把图片拖到窗口进行搜索"), 0, wx.ALL | wx.LEFT, 5)
         self.boxSizer = vbox
+
 
         head_sizer = wx.BoxSizer(wx.HORIZONTAL)
         upload_button = wx.Button(panel, label='选择图片搜索')
@@ -52,6 +64,10 @@ class ImageUploader(wx.Frame):
         vbox.Add(self.scrolled_window, 1, wx.EXPAND | wx.ALL, 5)  # Add the scrolled window to the main sizer
 
         panel.SetSizer(vbox)
+
+        dt = MyFileDropTarget(self)
+        panel.SetDropTarget(dt)
+
 
     def set_search_image(self, image):
         image = self.clamp_image_size(image, self.preview_texture_size)
@@ -109,6 +125,18 @@ class ImageUploader(wx.Frame):
         else:
             wx.MessageBox("剪切板打开失败", "Error", wx.OK | wx.ICON_ERROR)
 
+    def search_by_file_path(self, path):
+        if not str(path).endswith(".png"):
+            wx.MessageBox("目前只支持PNG图片", "Error", wx.OK | wx.ICON_ERROR)
+            return
+
+        if self.check_svn_root_setup():
+            return
+        image = wx.Image(path, wx.BITMAP_TYPE_ANY)
+        self.set_search_image(image)
+        files = {'query_img': open(path, 'rb')}
+        self.search_image_file(files)
+
     def on_upload(self, event):
         if self.check_svn_root_setup():
             return
@@ -117,10 +145,7 @@ class ImageUploader(wx.Frame):
             if fileDialog.ShowModal() == wx.ID_CANCEL:
                 return
             pathname = fileDialog.GetPath()
-            image = wx.Image(pathname, wx.BITMAP_TYPE_ANY)
-            self.set_search_image(image)
-            files = {'query_img': open(pathname, 'rb')}
-            self.search_image_file(files)
+            self.search_by_file_path(pathname)
 
     def clamp_image_size(self, image, max_size):
         if image.GetWidth() > max_size or image.GetHeight() > max_size:
@@ -134,7 +159,7 @@ class ImageUploader(wx.Frame):
         return image
 
     def load_and_show_images(self, paths):
-        # self.imageListSizer.Clear()
+        self.imageListSizer.Clear()
 
         for child in self.scrolled_window.GetChildren():
             child.Destroy()
@@ -152,7 +177,11 @@ class ImageUploader(wx.Frame):
                 print("File not found at path:", path)
 
         self.scrolled_window.SetScrollRate(15, 15)  # Set the scrolling rate
-        self.scrolled_window.SetVirtualSize((600, len(paths) * 100))
+        virtual_height = len(paths) * 100
+        # print("virtual_height:", virtual_height)
+        self.scrolled_window.SetVirtualSize((600, virtual_height))
+        self.scrolled_window.Layout()  # Trigger layout recalculation
+        self.scrolled_window.FitInside()  # Ensure all items are visible
         self.scrolled_window.Scroll(0, 0)
 
     def add_single_image_result(self, image, path):
@@ -181,6 +210,6 @@ class ImageUploader(wx.Frame):
 if __name__ == '__main__':
     print("Kyle Image Searcher Started")
     app = wx.App()
-    frame = ImageUploader(None, "ImageSearcher")
+    frame = ImageUploader(None, "以图搜图，图样图森破")
     frame.Show()
     app.MainLoop()
