@@ -61,19 +61,22 @@ class ImageUploader(wx.Frame):
 
     def search_image_file(self, files):
         data = {'isSVN': 'true', 'resultAsText': 'true'}
-        response = requests.post('http://172.16.12.41:5000', files=files, data=data)
-        if response.status_code == 200:
-            result_text = response.text  # 获取服务器返回的字符串
-            # print(result_text)  # 打印返回的字符串
-            paths = result_text.split('\n')  # 按换行符分割成列表
+        try:
+            response = requests.post('http://172.16.12.41:5000', files=files, data=data)
+            if response.status_code == 200:
+                result_text = response.text  # 获取服务器返回的字符串
+                # print(result_text)  # 打印返回的字符串
+                paths = result_text.split('\n')  # 按换行符分割成列表
 
-            # libpng "iCCP: known incorrect sRGB profile" 直接弹窗很烦,https://github.com/wrye-bash/wrye-bash/issues/458
-            wx.Log.EnableLogging(enable=False)
-            self.load_and_show_images(paths)
-            wx.Log.EnableLogging(enable=True)
-            # wx.MessageBox("Upload successful", "Success", wx.OK | wx.ICON_INFORMATION)
-        else:
-            wx.MessageBox("Upload failed", "Error", wx.OK | wx.ICON_ERROR)
+                # libpng "iCCP: known incorrect sRGB profile" 直接弹窗很烦,https://github.com/wrye-bash/wrye-bash/issues/458
+                wx.Log.EnableLogging(enable=False)
+                self.load_and_show_images(paths)
+                wx.Log.EnableLogging(enable=True)
+                # wx.MessageBox("Upload successful", "Success", wx.OK | wx.ICON_INFORMATION)
+            else:
+                wx.MessageBox("Upload failed", "Error", wx.OK | wx.ICON_ERROR)
+        except Exception as e:
+            wx.MessageBox("Upload failed:" + str(e), "Error", wx.OK | wx.ICON_ERROR)
 
     def check_svn_root_setup(self):
         if self.svn_root_dir == "":
@@ -161,7 +164,8 @@ class ImageUploader(wx.Frame):
         vertical_sizer = wx.BoxSizer(wx.VERTICAL)
         item_sizer.Add(static_image, 0, wx.ALL | wx.LEFT, 5)
         item_sizer.Add(vertical_sizer, 0, wx.ALL | wx.LEFT, 5)
-        vertical_sizer.Add(wx.StaticText(self.scrolled_window, label=path), 0, wx.ALL | wx.Right, 5)
+        absolute_path = os.path.abspath(path)
+        vertical_sizer.Add(wx.StaticText(self.scrolled_window, label=absolute_path), 0, wx.ALL | wx.Right, 5)
         vertical_sizer.Add(wx.StaticText(self.scrolled_window, label=size_desc), 0, wx.ALL | wx.Right, 5)
 
         open_file_button = wx.Button(self.scrolled_window, label='打开文件')
@@ -169,7 +173,6 @@ class ImageUploader(wx.Frame):
         vertical_sizer.Add(open_file_button, 0, wx.ALL | wx.RIGHT, 5)
 
         open_folder_button = wx.Button(self.scrolled_window, label='打开文件夹')
-        absolute_path = os.path.abspath(path)
         open_folder_button.Bind(wx.EVT_BUTTON, lambda event: os.startfile(os.path.dirname(absolute_path)))
         vertical_sizer.Add(open_folder_button, 0, wx.ALL | wx.RIGHT, 5)
         self.imageListSizer.Add(item_sizer, 0, wx.ALL | wx.LEFT, 5)  # 将图片添加到垂直布局管理器中
