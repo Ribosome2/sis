@@ -1,3 +1,1 @@
 pyinstaller  打包总是会missing 一些module，所以需要手动添加
-暂时只能用 cx_Freeze 打包，发布的时候把build目录里面的 exe文件夹一起拷给别人用就行
-"""

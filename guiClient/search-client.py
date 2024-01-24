@@ -33,7 +33,7 @@ class MyFileDropTarget(wx.FileDropTarget):
 class ImageUploader(wx.Frame):
     def __init__(self, parent, title):
         super(ImageUploader, self).__init__(parent, title=title, size=(600, 800))
-        self.SetIcon(wx.Icon('./SIS_Icon.png', wx.BITMAP_TYPE_PNG))
+        self.SetIcon(wx.Icon('./Icon/SIS_Icon.png', wx.BITMAP_TYPE_PNG))
         self.svn_root_dir = load_config()
         self.preview_texture_size = 80
         panel = wx.Panel(self)
@@ -116,7 +116,7 @@ class ImageUploader(wx.Frame):
                 image = wx.Image(big_map.ConvertToImage())
                 self.set_search_image(image)
                 image = wx.Image(big_map.ConvertToImage())
-                tempFileName = "tempClipboardImage.png"
+                tempFileName = "Icon/tempClipboardImage.png"
                 image.SaveFile(tempFileName, wx.BITMAP_TYPE_PNG)
                 files = {'query_img': open(tempFileName, 'rb')}
                 self.search_image_file(files)

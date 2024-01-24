@@ -72,6 +72,13 @@ def index():
         # check file is empty
         if not file:
             return "No file uploaded"
+        remote_addr = request.environ.get('REMOTE_ADDR', None)
+        print("--- ",remote_addr)
+        print("remote_addr : ", request.remote_addr)
+        if request.remote_addr == '127.0.0.1' or request.remote_addr == 'localhost':
+            print("local request")
+        else:
+            print("remote request")
 
 
         # Save query image
