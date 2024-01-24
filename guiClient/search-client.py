@@ -3,7 +3,7 @@ import os
 
 import wx
 import requests
-
+from wx.adv import TaskBarIcon as TaskBarIcon
 confi_file_path = "image_searcher.conf"
 
 import wx
@@ -23,6 +23,7 @@ def save_config(svn_root_dir):
 class ImageUploader(wx.Frame):
     def __init__(self, parent, title):
         super(ImageUploader, self).__init__(parent, title=title, size=(600, 800))
+        self.SetIcon(wx.Icon('./SIS_Icon.png', wx.BITMAP_TYPE_PNG))
         self.svn_root_dir = load_config()
         self.preview_texture_size = 80
         panel = wx.Panel(self)
@@ -60,7 +61,7 @@ class ImageUploader(wx.Frame):
 
     def search_image_file(self, files):
         data = {'isSVN': 'true', 'resultAsText': 'true'}
-        response = requests.post('http://127.0.0.1:5000', files=files, data=data)
+        response = requests.post('http://172.16.12.41:5000', files=files, data=data)
         if response.status_code == 200:
             result_text = response.text  # 获取服务器返回的字符串
             # print(result_text)  # 打印返回的字符串
@@ -168,12 +169,14 @@ class ImageUploader(wx.Frame):
         vertical_sizer.Add(open_file_button, 0, wx.ALL | wx.RIGHT, 5)
 
         open_folder_button = wx.Button(self.scrolled_window, label='打开文件夹')
-        open_folder_button.Bind(wx.EVT_BUTTON, lambda event: os.startfile(os.path.dirname(path)))
+        absolute_path = os.path.abspath(path)
+        open_folder_button.Bind(wx.EVT_BUTTON, lambda event: os.startfile(os.path.dirname(absolute_path)))
         vertical_sizer.Add(open_folder_button, 0, wx.ALL | wx.RIGHT, 5)
         self.imageListSizer.Add(item_sizer, 0, wx.ALL | wx.LEFT, 5)  # 将图片添加到垂直布局管理器中
 
 
 if __name__ == '__main__':
+    print("Kyle Image Searcher Started")
     app = wx.App()
     frame = ImageUploader(None, "ImageSearcher")
     frame.Show()
