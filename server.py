@@ -53,8 +53,8 @@ unity_files_features = np.array(unity_files_features)
 def response_result_as_text(scores):
     result = ""
     for score in scores:
-        cleanPath = score[1].replace("static\img\svn\\", "")
-        cleanPath = cleanPath.replace("static\img\\UnityProject\\", "")
+        cleanPath = score[1].replace("static\\img\\svn\\", "")
+        cleanPath = cleanPath.replace("static\\img\\UnityProject\\", "")
         result += cleanPath + "\n"
     return result
 
@@ -94,7 +94,7 @@ def index():
         img.save(uploaded_img_path)
 
         is_search_svn = False
-        if 'isSVN' in request.form and request.form['isSVN']:
+        if 'isSVN' in request.form and request.form['isSVN']=="true":
             is_search_svn = True
 
 
@@ -102,8 +102,11 @@ def index():
         query = fe.extract(img)
         # python的三目运算
         scores = []
-        if(is_search_svn):
-            scores = find_by_feature(svn_files_features, query,img_paths_svn)
+        if is_search_svn:
+            if len(svn_files_features)  ==0 :
+                print("no svn features file")
+            else:
+                scores = find_by_feature(svn_files_features, query,img_paths_svn)
         else:
             scores = find_by_feature(unity_files_features, query,img_paths_unity)
 

@@ -76,11 +76,26 @@ class ImageUploader(wx.Frame):
         self.image_ctrl.SetInitialSize(size=(image.GetWidth(), image.GetHeight()))
 
     def search_image_file(self, files):
-        data = {'isSVN': 'true', 'resultAsText': 'true'}
         try:
-            response = requests.post('http://172.16.12.41:5000', files=files, data=data)
+            import json
+            # Read config file
+            with open('config.json', 'r') as config_file:
+                config = json.load(config_file)
+            # Extract server information
+            server_ip = config['server']['ip']
+            server_port = config['server']['port']
+            searchSVN = config['server']['searchSVN']
+            data = {'isSVN': searchSVN, 'resultAsText': 'true'}
+
+            # Construct URL
+            url = f"http://{server_ip}:{server_port}"
+
+            response = requests.post(url, files=files, data=data)
             if response.status_code == 200:
                 result_text = response.text  # 获取服务器返回的字符串
+                if result_text== "":
+                    wx.MessageBox("Result is empty", "Error", wx.OK | wx.ICON_ERROR)
+                    return
                 # print(result_text)  # 打印返回的字符串
                 paths = result_text.split('\n')  # 按换行符分割成列表
 
@@ -89,6 +104,8 @@ class ImageUploader(wx.Frame):
                 self.load_and_show_images(paths)
                 wx.Log.EnableLogging(enable=True)
                 # wx.MessageBox("Upload successful", "Success", wx.OK | wx.ICON_INFORMATION)
+            elif response.status_code == 500:
+                print("Server Error! Check server logs")
             else:
                 wx.MessageBox("Upload failed", "Error", wx.OK | wx.ICON_ERROR)
         except Exception as e:

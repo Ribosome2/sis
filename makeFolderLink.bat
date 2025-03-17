@@ -1,2 +1,2 @@
-mklink /D "XXXsis-image-search\static\img\svn" "D:TargetPath"
+mklink /D ".\static\img\UnityProject\Assets" "C:\xxx-client\UnityProj\Assets"
 pause

@@ -1,1 +1,3 @@
 pyinstaller  打包总是会missing 一些module，所以需要手动添加
+pip install Pillow
+pip install wxPython
